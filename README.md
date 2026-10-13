@@ -24,4 +24,6 @@
   https://www.kaggle.com/datasets/olistbr/marketing-funnel-olist
 
 ## 4. 当前状态
-  已完成初始化阶段，包括项目目录结构设计、SQL 分层架构设计、Git 仓库初始化、README 初稿
+  阶段1（数据准备与质量审计）已完成：两个数据集共11张表已导入 MySQL，完成数据质量审计、DWD 层清洗和数据全景概览。相关决策见 `docs/decision_log.md`，阶段总结见 `docs/stage_summaries/stage_1.md`。
+
+下一步：阶段2，核心业务分析。
