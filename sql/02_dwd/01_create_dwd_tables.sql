@@ -11,15 +11,17 @@
      2. 数据已清洗，因此 DWD 层设主键：如果主键冲突导致建表失败，
         说明清洗逻辑有错误，主键在这里起到"自动检查"的作用
      3. 先显式定义表结构，再 INSERT ... SELECT 写入数据，字段类型清楚可控
-   对应决策：D-013 至 D-021（见 docs/decision_log.md）
+   对应决策：D-013 至 D-021、D-027（见 docs/decision_log.md）
    环境：MySQL 26.7（兼容 MySQL 8.0 及以上）
-   作者：LeeMichael-L    日期：2026-10-12
+   作者：LeeMichael-L    日期：2026-10-12（2026-10-14 按 D-027 修改邮编坐标）
    ===================================================================== */
 
 USE olist;
 
 /* ---------------------------------------------------------------------
    1. 邮编坐标表：一行 = 一个邮编前缀（D-019：取平均经纬度）
+      D-027：只用巴西境内的坐标点求平均（纬度 -33.8 至 5.3，经度 -74.0 至 -34.7），
+      境外的错误坐标会把平均值拉到海上甚至欧洲；全部坐标都在境外的邮编不进入此表
    --------------------------------------------------------------------- */
 DROP TABLE IF EXISTS dwd_geo_zip;
 CREATE TABLE dwd_geo_zip (
@@ -36,6 +38,8 @@ SELECT geolocation_zip_code_prefix,
        AVG(geolocation_lng),
        COUNT(*)
 FROM ods_geolocation
+WHERE geolocation_lat BETWEEN -33.8 AND 5.3
+  AND geolocation_lng BETWEEN -74.0 AND -34.7
 GROUP BY geolocation_zip_code_prefix;
 
 /* ---------------------------------------------------------------------
@@ -288,7 +292,9 @@ WHERE r.rn_last = 1;
    8. 核对：DWD 与 ODS 的行数关系
    --------------------------------------------------------------------- */
 SELECT 'dwd_geo_zip'       AS table_name, COUNT(*) AS dwd_rows,
-       (SELECT COUNT(DISTINCT geolocation_zip_code_prefix) FROM ods_geolocation) AS expected_rows
+       (SELECT COUNT(DISTINCT geolocation_zip_code_prefix) FROM ods_geolocation
+        WHERE geolocation_lat BETWEEN -33.8 AND 5.3
+          AND geolocation_lng BETWEEN -74.0 AND -34.7) AS expected_rows
 FROM dwd_geo_zip
 UNION ALL
 SELECT 'dwd_customers',     COUNT(*), (SELECT COUNT(*) FROM ods_customers)     FROM dwd_customers

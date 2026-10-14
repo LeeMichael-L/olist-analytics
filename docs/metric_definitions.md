@@ -37,7 +37,7 @@
 | 配送时长 | 下单到买家收货的天数 | `DATEDIFF(delivered_customer_ts, purchase_ts)`，排除对应时间戳异常的订单（D-014） | 已定义 |
 | 按时送达率 | 在承诺日期当天或之前送达的订单比例（护栏指标） | `AVG(DATE(delivered_customer_ts) <= estimated_delivery_date)` | 已定义 |
 | 延迟天数 | 实际送达比承诺日期晚的天数 | `DATEDIFF(delivered_customer_ts, estimated_delivery_date)`，按时送达为 0 或负数 | 已定义 |
-| 卖家发货超时 | 卖家交物流晚于发货截止时间 | `delivered_carrier_ts > shipping_limit_ts` | 待定（模块3确认订单级规则） |
+| 卖家发货超时 | 卖家交给物流的时间晚于发货截止时间 | 单卖家订单：`delivered_carrier_ts > shipping_limit_ts`；多卖家订单为 NULL | 已定义（D-023） |
 
 **敏感性分析的默认设置**
 
