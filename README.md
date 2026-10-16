@@ -65,31 +65,56 @@
 ```
 olist-analytics/
 ├── sql/
-│   ├── 00_data_quality_checks.sql    # 数据质量审计
-│   ├── 01_ods/                       # 原始数据落地
-│   ├── 02_dwd/                       # 清洗与标记
-│   ├── 03_dws/                       # 主题宽表（履约、卖家、漏斗）
-│   └── 04_ads/                       # 模块结果表
+│   ├── 00_data_quality_checks.sql            # 数据质量审计（A~E 五类约 40 项检查）
+│   ├── s1_review_investigation.sql           # 专项调查：评价与订单的多对多关系
+│   ├── 01_ods/                               # 原始数据层：建表、导入（含营销漏斗数据）
+│   ├── 02_dwd/                               # 明细层：清洗与打标记
+│   ├── 03_dws/                               # 汇总层：履约宽表、卖家宽表、漏斗宽表
+│   └── 04_ads/                               # 应用层：模块1、5 的查询，模块6 的分层结果表
 ├── python/
-│   ├── olist_utils.py                # 数据库连接与绘图样式
-│   ├── m1_kpi_tree.ipynb             # 模块1 KPI 拆解
-│   ├── m3_fulfillment.ipynb          # 模块3 履约与满意度
-│   ├── m5_repurchase.ipynb           # 模块5 复购
-│   ├── m6_seller.ipynb               # 模块6 卖家分层
-│   └── m7_funnel.ipynb               # 模块7 卖家获取漏斗
-└── docs/
-    ├── decision_log.md               # 决策日志
-    ├── metric_definitions.md         # 指标口径
-    ├── stage_summaries/              # 阶段总结
-    └── figures/                      # 图表
+│   ├── olist_utils.py                        # 数据库连接与统一图表风格
+│   ├── s1_overview.ipynb                     # 阶段1 数据全景概览
+│   ├── m1_kpi_tree.ipynb                     # 模块1 KPI 拆解
+│   ├── m3_fulfillment.ipynb                  # 模块3 履约与满意度
+│   ├── m5_repurchase.ipynb                   # 模块5 复购
+│   ├── m6_seller.ipynb                       # 模块6 卖家分层
+│   └── m7_funnel.ipynb                       # 模块7 卖家获取漏斗
+├── docs/
+│   ├── project_charter.md                    # 项目章程：目标、框架、规范
+│   ├── data_dictionary.md                    # 数据字典：原始表与派生表
+│   ├── er_diagram.png                        # 原始数据 ER 图
+│   ├── dq_results.txt                        # 数据质量审计的运行结果
+│   ├── decision_log.md                       # 决策日志（D-001 ~ D-031）
+│   ├── metric_definitions.md                 # 指标口径
+│   ├── stage_summaries/                      # 阶段总结
+│   └── figures/                              # 图表（fig* 为阶段1 概览，m* 为各模块）
+└── requirements.txt                          # Python 依赖
 ```
 
 ## 8. 如何复现
 
-1. 从 Kaggle 下载上述两个数据集，放入 `data/raw/`
-2. 按顺序运行 `sql/01_ods` → `02_dwd` → `03_dws` → `04_ads` 下的脚本（MySQL 8.0+）
-3. 在项目根目录创建 `.env`，写入 `MYSQL_PASSWORD=你的密码`
-4. 运行 `python/` 下的 notebook
+**环境**：MySQL 8.0 及以上（本项目使用 26.7），Python 3.13。
+
+1. **准备数据**：从 Kaggle 下载上述两个数据集，按以下目录存放（文件夹名不含空格，D-010）：
+   ```
+   data/raw/Brazilian_eCommerce/          # 主数据集的 9 个 CSV
+   data/raw/Marketing_Funnel_by_Olist/    # 营销漏斗的 2 个 CSV
+   ```
+2. **开启本地文件导入**（只需一次）：在 MySQL 中执行 `SET GLOBAL local_infile = 1;`
+3. **建库建表**：在项目根目录启动客户端
+   `mysql -u root -p --local-infile=1 --default-character-set=utf8mb4`，然后按顺序执行：
+   ```
+   SOURCE sql/01_ods/01_create_ods_tables.sql;
+   SOURCE sql/01_ods/02_load_ods_data.sql;
+   SOURCE sql/02_dwd/01_create_dwd_tables.sql;
+   SOURCE sql/03_dws/01_create_dws_order_fulfillment.sql;
+   SOURCE sql/03_dws/02_create_dws_seller.sql;
+   SOURCE sql/03_dws/03_create_dws_seller_funnel.sql;
+   SOURCE sql/04_ads/m6_seller_tier.sql;
+   ```
+   每个脚本末尾的核对查询可以用来确认结果（例如履约宽表应为 96,203 行）。
+4. **配置 Python**：`pip install -r requirements.txt`；在项目根目录创建 `.env` 文件，写入 `MYSQL_PASSWORD=你的密码`（已在 `.gitignore` 中，不会被提交）。代码默认以 `root` 用户连接本机 3306 端口，如有不同请修改 `python/olist_utils.py`。
+5. **运行分析**：在 `python/` 目录下打开 notebook，从头运行即可。建议顺序：`s1_overview` → `m1` → `m5` → `m3` → `m6` → `m7`。
 
 ## 9. 当前状态
 
