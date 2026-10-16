@@ -41,7 +41,7 @@ CREATE TABLE ads_m6_seller_tier (
     tier                  VARCHAR(12)   NOT NULL,  -- 规模-问题类型，或"样本不足"
     PRIMARY KEY (seller_id),
     INDEX idx_ads_tier (tier)
-) DEFAULT CHARSET = utf8mb4 COMMENT = 'ADS 模块6 卖家分层';
+) COMMENT = 'ADS 模块6 卖家分层';   -- 不单独指定字符集，沿用数据库默认（utf8mb4_unicode_ci），与其他表保持一致
 
 INSERT INTO ads_m6_seller_tier
 WITH per_seller AS (

@@ -33,7 +33,7 @@ CREATE TABLE dws_seller_funnel (
     is_healthy_90d       TINYINT      NULL,      -- n_orders_90d >= 3
     PRIMARY KEY (mql_id),
     INDEX idx_funnel_origin (origin)
-) DEFAULT CHARSET = utf8mb4 COMMENT = 'DWS 卖家获取漏斗（模块7）';
+) COMMENT = 'DWS 卖家获取漏斗（模块7）';   -- 不单独指定字符集，沿用数据库默认（utf8mb4_unicode_ci），与其他表保持一致
 
 INSERT INTO dws_seller_funnel
 WITH seller_order AS (
