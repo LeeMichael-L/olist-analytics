@@ -1,4 +1,5 @@
 # Olist Analytics Project
+文字报告：[docs/report/olist_report.pdf](docs/report/olist_report.pdf)
 
 ## 1. 项目介绍
 本项目基于 Olist 巴西电商公开数据集（约 10 万笔订单，2016-2018），模拟数据分析团队对电商平台运营情况进行分析。
